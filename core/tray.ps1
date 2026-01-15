@@ -4,28 +4,23 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-# Check if rclone is already running to avoid multiple instances
-$existingRclone = Get-Process -Name "rclone" -ErrorAction SilentlyContinue
-if ($existingRclone) {
-    # If running, find the port of the first mount and open its web UI, then exit.
-    $CurrentDirForCheck = Split-Path -Parent $MyInvocation.MyCommand.Path
-    $MountConfForCheck  = Join-Path $CurrentDirForCheck "mount.conf"
-    
-    if (Test-Path $MountConfForCheck) {
-        # Read the first valid line from mount.conf
-        $firstMountLine = Get-Content $MountConfForCheck | Where-Object { ![string]::IsNullOrWhiteSpace($_) -and !$_.Trim().StartsWith("#") } | Select-Object -First 1
-        
-        if ($firstMountLine) {
-            $parts = $firstMountLine -split "\|"
-            if ($parts.Count -ge 4) {
-                $port = $parts[3].Trim()
-                Start-Process "http://localhost:$port/#/dashboard"
-            }
-        }
+# --- [CRITICAL FIX] Kill previous tray instances ---
+# Get the ID of the current script process so we don't kill ourselves
+$CurrentPID = $PID
+
+# Find other PowerShell processes running 'tray.ps1' and kill them
+try {
+    Get-WmiObject Win32_Process | Where-Object { 
+        $_.Name -match 'powershell' -and 
+        $_.CommandLine -like '*tray.ps1*' -and 
+        $_.ProcessId -ne $CurrentPID 
+    } | ForEach-Object { 
+        Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue 
     }
-    # Exit the script to prevent re-launching the tray application
-    exit
+} catch {
+    # Ignore errors if WMI is restricted, though rare.
 }
+# ---------------------------------------------------
 
 $CurrentDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RcloneExe  = Join-Path $CurrentDir "rclone.exe"
@@ -38,23 +33,16 @@ $Mounts = @()
 if (Test-Path $MountConf) {
     $Lines = Get-Content $MountConf
     foreach ($Line in $Lines) {
-        # Skip empty lines or comments
         if ([string]::IsNullOrWhiteSpace($Line) -or $Line.Trim().StartsWith("#")) { continue }
         
-        # Parse: Remote|Letter|Label|Port
         $Parts = $Line -split "\|"
         if ($Parts.Count -ge 4) {
-            
-            # --- Core Fix: Drive Letter Handling ---
             $CleanLetter = $Parts[1].Trim()
-            # If drive letter doesn't end with ':', append it to prevent mounting as a folder
-            if (-not $CleanLetter.EndsWith(":")) {
-                $CleanLetter += ":"
-            }
+            if (-not $CleanLetter.EndsWith(":")) { $CleanLetter += ":" }
 
             $Mounts += @{
                 Remote = $Parts[0].Trim()
-                Letter = $CleanLetter     # Use the corrected drive letter
+                Letter = $CleanLetter
                 Label  = $Parts[2].Trim()
                 Port   = $Parts[3].Trim()
             }
@@ -82,12 +70,12 @@ function Stop-All-Rclone {
 # --- Function: Start Mounts ---
 function Start-All-Rclone {
     foreach ($m in $Mounts) {
-        # Double check if drive letter is available (e.g. Z:\)
         if (-not (Test-Path "$($m.Letter)\")) {
             $ArgList = @(
                 "mount", "$($m.Remote):", "$($m.Letter)",
                 "--config", "$RcloneConf",
                 "--vfs-cache-mode", "full",
+                "--vfs-write-back", "5s",
                 "--volname", "$($m.Label)",
                 "--rc", "--rc-addr", "localhost:$($m.Port)",
                 "--rc-no-auth", 
@@ -139,6 +127,6 @@ $NotifyIcon.Add_DoubleClick({
 })
 
 # --- Main Execution ---
-Stop-All-Rclone
-Start-All-Rclone
+Stop-All-Rclone  # Kill rclone binaries
+Start-All-Rclone # Start new rclone mounts
 [System.Windows.Forms.Application]::Run()
