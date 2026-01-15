@@ -29,6 +29,7 @@ RcloneTray/
   - **Auto-assign**: Assigns free ports (5572, 5573...) allowing multiple instances to run simultaneously.
 - **Silent Operation**: Completely hides the CMD window; runs quietly in the background.
 - **True Portability**: All configurations are stored locally within the folder. You can put it on a USB drive and use it on different computers.
+- **Smart Instance Control**: If the program is already running, clicking the shortcut again will intelligently open the Web Dashboard instead of launching a new instance.
 
 ## 🚀 Quick Start
 

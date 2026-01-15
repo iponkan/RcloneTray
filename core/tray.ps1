@@ -4,6 +4,29 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
+# Check if rclone is already running to avoid multiple instances
+$existingRclone = Get-Process -Name "rclone" -ErrorAction SilentlyContinue
+if ($existingRclone) {
+    # If running, find the port of the first mount and open its web UI, then exit.
+    $CurrentDirForCheck = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $MountConfForCheck  = Join-Path $CurrentDirForCheck "mount.conf"
+    
+    if (Test-Path $MountConfForCheck) {
+        # Read the first valid line from mount.conf
+        $firstMountLine = Get-Content $MountConfForCheck | Where-Object { ![string]::IsNullOrWhiteSpace($_) -and !$_.Trim().StartsWith("#") } | Select-Object -First 1
+        
+        if ($firstMountLine) {
+            $parts = $firstMountLine -split "\|"
+            if ($parts.Count -ge 4) {
+                $port = $parts[3].Trim()
+                Start-Process "http://localhost:$port/#/dashboard"
+            }
+        }
+    }
+    # Exit the script to prevent re-launching the tray application
+    exit
+}
+
 $CurrentDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RcloneExe  = Join-Path $CurrentDir "rclone.exe"
 $RcloneConf = Join-Path $CurrentDir "rclone.conf"
