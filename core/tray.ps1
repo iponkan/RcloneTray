@@ -94,8 +94,8 @@ function Start-All-Rclone {
                 "--ignore-checksum",
 
                 # --- 调试日志 (修好后记得删掉或改成 INFO) ---
-                "--log-file", "$CurrentDir\rclone.log",
-                "--log-level", "DEBUG",
+                # "--log-file", "$CurrentDir\rclone.log",
+                # "--log-level", "DEBUG",
 
                 # --- 远程控制接口 ---
                 "--rc", "--rc-addr", "localhost:$($m.Port)",
