@@ -35,6 +35,7 @@ RcloneTray/
 
 ### 1. Prerequisites
 
+- **WinFsp**: `rclone mount` on Windows requires [WinFsp](https://github.com/winfsp/winfsp) to be installed. Please download and install it first.
 - Windows 10 / 11.
 - Download the **Windows version (zip)** from the [official Rclone website](https://rclone.org/downloads/).
 - Unzip the download and **move `rclone.exe` into the `core/` folder of this project.**

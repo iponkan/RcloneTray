@@ -33,6 +33,7 @@ RcloneTray/
 
 ### 1. 准备工作
 
+- **安装 WinFsp**: 在 Windows 上使用 `rclone mount` 功能需要先安装 [WinFsp](https://github.com/winfsp/winfsp)，请先下载并安装它。
 - 适用于 Windows 10 / 11 系统。
 - 请从 [Rclone 官网](https://rclone.org/downloads/) 下载 Windows 版本 (zip)。
 - 解压后，**将 `rclone.exe` 移动到本项目的 `core/` 文件夹内。**
