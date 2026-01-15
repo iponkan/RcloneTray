@@ -1,0 +1,23 @@
+# ==========================
+# User Configuration (Secrets)
+*.conf
+
+# ==========================
+# Binaries & Dependencies
+*.exe
+
+# ==========================
+# Temporary & Log Files
+# ==========================
+*.log
+*.tmp
+*.dmp
+
+# ==========================
+# OS & Editor Files (Junk)
+# ==========================
+Thumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/
