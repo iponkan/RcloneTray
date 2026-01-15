@@ -74,9 +74,30 @@ function Start-All-Rclone {
             $ArgList = @(
                 "mount", "$($m.Remote):", "$($m.Letter)",
                 "--config", "$RcloneConf",
+                
+                # --- 核心读写模式 ---
                 "--vfs-cache-mode", "full",
-                "--vfs-write-back", "5s",
+                "--vfs-write-back", "5s",  # 稍微缩短一点延迟，提高响应
                 "--volname", "$($m.Label)",
+                
+                # --- [修正] 修复 User-Agent 被截断的问题 ---
+                # 注意：这里用了 '"..."' (单引号包双引号)，这是关键！
+                "--user-agent", '"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"',
+                
+                # --- 兼容性参数 ---
+                "--transfers", "1",
+                "--checkers", "1",
+                
+                # --- 解决 500 错误和 corrupted 错误的关键 ---
+                "--no-checksum",
+                "--ignore-size",  # 必须加上这个，因为 Pydio 服务端显示的大小和本地不一致
+                "--ignore-checksum",
+
+                # --- 调试日志 (修好后记得删掉或改成 INFO) ---
+                "--log-file", "$CurrentDir\rclone.log",
+                "--log-level", "DEBUG",
+
+                # --- 远程控制接口 ---
                 "--rc", "--rc-addr", "localhost:$($m.Port)",
                 "--rc-no-auth", 
                 "--rc-web-gui", "--rc-web-gui-no-open-browser", "--rc-web-gui-update",
