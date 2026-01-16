@@ -80,7 +80,7 @@ function Start-All-Rclone {
                 "--vfs-write-back", "5s",  # 稍微缩短一点延迟，提高响应
                 "--volname", "$($m.Label)",
                 "--dir-cache-time", "1m",  # 缩短目录缓存，加快新文件发现
-                "--poll-interval", "15s",  # 加快轮询，从默认1分钟改为15秒
+                "--poll-interval", "30s",  # 加快轮询，从默认1分钟改为30秒
                 
                 # --- [修正] 修复 User-Agent 被截断的问题 ---
                 # 注意：这里用了 '"..."' (单引号包双引号)，这是关键！
